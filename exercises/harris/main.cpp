@@ -19,7 +19,7 @@ Mat circleCorners(Mat R, int thresholding) {
 	return out;
 }
 
-Mat harris(Mat src, int thresholding, float k, int ksize = 3) {
+Mat harris(Mat src, int thresholding, double k, int ksize = 3) {
 	Mat dx, dy, dxy, dx2, dy2;
 
 	Sobel(src, dx, CV_32FC1, 1, 0, ksize);
@@ -49,7 +49,7 @@ Mat harris(Mat src, int thresholding, float k, int ksize = 3) {
 }
 
 int main() {
-	Mat img = imread("../images/bulding.png", IMREAD_GRAYSCALE);
+	Mat img = imread("../images/coins.png", IMREAD_GRAYSCALE);
 
 	if (img.empty()) {
 		cout << "Error in reading image" << endl;
