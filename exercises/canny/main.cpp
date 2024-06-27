@@ -29,7 +29,7 @@ Mat nonMaximaSuppression(Mat magnitude, Mat orientations) {
 					out.at<uchar>(i, j) = magnitude.at<uchar>(i, j);
 				}
 			}
-			else if ((angle > -157.5 && angle <= -112.5) || (angle <= 67.5 && angle > 22.5)) { // -45° edge
+			else if ((angle > -157.5 && angle <= -112.5) || (angle > 22.5 && angle <= 67.5)) { // -45° edge
 				if (magnitude.at<uchar>(i, j) > magnitude.at<uchar>(i - 1, j - 1) && magnitude.at<uchar>(i, j) > magnitude.at<uchar>(i + 1, j + 1)) {
 					out.at<uchar>(i, j) = magnitude.at<uchar>(i, j);
 				}
