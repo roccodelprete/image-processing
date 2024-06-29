@@ -44,7 +44,7 @@ Mat grow(Mat src, Mat out, Mat mask, Point seed, int thresh) {
 	return mask;
 }
 
-Mat regionGrowing(Mat src, double minRegionFactor, int maxRegionNumber, int thresh) {
+void regionGrowing(Mat src, double minRegionFactor, int maxRegionNumber, int thresh) {
 	uchar labels = 1;
 	int minRegionArea = int(minRegionFactor * src.rows * src.cols);
 
@@ -78,8 +78,6 @@ Mat regionGrowing(Mat src, double minRegionFactor, int maxRegionNumber, int thre
 			}
 		}
 	}
-
-	return out;
 }
 
 int main() {
@@ -95,8 +93,7 @@ int main() {
 	}
 
 	imshow("original", img);
-
-	Mat regionGrowingImg = regionGrowing(img, .01, 10, 200);
+	regionGrowing(img, .01, 10, 200);
 
 	waitKey(0);
 
