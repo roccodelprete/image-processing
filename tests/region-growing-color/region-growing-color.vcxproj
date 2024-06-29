@@ -13,8 +13,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{a0502bfc-8cba-4074-b846-b1a241eba715}</ProjectGuid>
-    <RootNamespace>regiongrowinggrayscale</RootNamespace>
+    <ProjectGuid>{3f5b3476-57e3-4f3b-bef3-4de233dcc596}</ProjectGuid>
+    <RootNamespace>regiongrowingcolor</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

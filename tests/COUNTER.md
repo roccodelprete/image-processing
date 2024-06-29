@@ -6,3 +6,5 @@
 - Hough Circles: 3
 - Otsu: 2
 - Otsu-2: 2
+- Region Growing Grayscale: 2
+- Region Growing Color: 2
