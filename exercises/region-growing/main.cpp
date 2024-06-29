@@ -27,11 +27,11 @@ Mat grow(Mat src, Mat out, Mat mask, Point seed, int thresh) {
 				continue;
 			}
 			else {
-				// uchar delta = abs(src.at<uchar>(center)  - src.at<uchar>(estimatedPoint));
+				uchar delta = abs(src.at<uchar>(center)  - src.at<uchar>(estimatedPoint));
 				/**
 				*	if the image is in RGB, this is the delta calculation
 				*/
-				int delta = pow(src.at<Vec3b>(center)[0] - src.at<Vec3b>(estimatedPoint)[0], 2) + pow(src.at<Vec3b>(center)[1] - src.at<Vec3b>(estimatedPoint)[1], 2) + pow(src.at<Vec3b>(center)[2] - src.at<Vec3b>(estimatedPoint)[2], 2);
+				// int delta = pow(src.at<Vec3b>(center)[0] - src.at<Vec3b>(estimatedPoint)[0], 2) + pow(src.at<Vec3b>(center)[1] - src.at<Vec3b>(estimatedPoint)[1], 2) + pow(src.at<Vec3b>(center)[2] - src.at<Vec3b>(estimatedPoint)[2], 2);
 
 				if ((out.at<uchar>(estimatedPoint) == 0) && (delta < thresh) && (mask.at<uchar>(estimatedPoint) == 0)) {
 					mask.at<uchar>(estimatedPoint) = 1;
@@ -81,7 +81,7 @@ void regionGrowing(Mat src, double minRegionFactor, int maxRegionNumber, int thr
 }
 
 int main() {
-	Mat img = imread("../images/lenna.jpg", IMREAD_COLOR);
+	Mat img = imread("../images/lenna.jpg", IMREAD_GRAYSCALE);
 
 	if (img.empty()) {
 		cout << "Error reading image" << endl;
@@ -93,7 +93,7 @@ int main() {
 	}
 
 	imshow("original", img);
-	regionGrowing(img, .01, 10, 200);
+	regionGrowing(img, .01, 4, 2);
 
 	waitKey(0);
 
