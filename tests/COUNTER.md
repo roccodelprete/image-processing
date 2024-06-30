@@ -1,7 +1,7 @@
 # ALGORITHMS COUNTER
 
 - Canny: 6
-- Harris: 5
+- Harris: 6
 - Hough Lines: 4
 - Hough Circles: 3
 - Otsu: 3
