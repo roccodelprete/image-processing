@@ -2,21 +2,22 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 
-using namespace std; using namespace cv;
+using namespace std;
+using namespace cv;
 
 vector<double> normalizeHistogram(Mat src) {
 	vector<double> histogram(256, 0.0f);
-	
+
 	for (int i = 0; i < src.rows; i++) {
 		for (int j = 0; j < src.cols; j++) {
 			histogram[src.at<uchar>(i, j)]++;
 		}
 	}
-	
+
 	for (int i = 0; i < histogram.size(); i++) {
 		histogram[i] /= src.rows * src.cols;
 	}
-	
+
 	return histogram;
 }
 
@@ -28,23 +29,23 @@ Mat otsu(Mat src) {
 		globalMean += (i + 1) * histogram[i];
 	}
 
-	int thresh = 0;
-	double maxVariance = 0.0f, prob = 0.0f, cumulativeMean = 0.0f;
+	int th = 0;
+	double prob = 0.0f, cumulativeMean = 0.0f, maxVariance = 0.0f;
 
 	for (int i = 0; i < histogram.size(); i++) {
 		prob += histogram[i];
 		cumulativeMean += (i + 1) * histogram[i];
-		double currVariance = pow(prob * globalMean - cumulativeMean, 2) / (prob * (1 - prob));
-		
-		if (currVariance > maxVariance) {
-			maxVariance = currVariance;
-			thresh = i;
+		double currentVariance = pow(prob * globalMean - cumulativeMean, 2) / (prob * (1 - prob));
+
+		if (currentVariance > maxVariance) {
+			th = i;
+			maxVariance = currentVariance;
 		}
 	}
 
 	Mat gauss, out;
 	GaussianBlur(src, gauss, Size(3, 3), 0);
-	threshold(gauss, out, thresh, 255, THRESH_BINARY);
+	threshold(gauss, out, th, 255, THRESH_BINARY);
 
 	return out;
 }
@@ -59,7 +60,6 @@ int main() {
 
 	imshow("original", img);
 	imshow("otsu image", otsu(img));
-
 	waitKey(0);
 
 	return 0;
