@@ -5,8 +5,8 @@
 using namespace std;
 using namespace cv;
 
-Mat grow(Mat src, Mat mask, Mat out, int th, Point seed) {
-	Point pointsShif[8] = {
+Mat grow(Mat src, Mat mask, Mat out, Point seed, int th) {
+	Point pointsShift[8] = {
 		Point(-1, -1), Point(-1, 0), Point(-1, 1),
 		Point(0, -1), Point(0, 1),
 		Point(1, -1), Point(1, 0), Point(1, 1)
@@ -16,15 +16,16 @@ Mat grow(Mat src, Mat mask, Mat out, int th, Point seed) {
 	pointsStack.push(seed);
 
 	while (!pointsStack.empty()) {
-		Point center = pointsStack.top();
+		auto center = pointsStack.top();
 		mask.at<uchar>(center) = 1;
 		pointsStack.pop();
 
 		for (int i = 0; i < 8; i++) {
-			Point estimatedPoint = center + pointsShif[i];
-			
+			auto estimatedPoint = center + pointsShift[i];
+
 			if (estimatedPoint.x >= 0 && estimatedPoint.y >= 0 && estimatedPoint.x < src.cols && estimatedPoint.y < src.rows) {
-				uchar delta = abs(src.at<uchar>(center) - src.at<uchar>(estimatedPoint));
+				auto srcEstimatedPoint = src.at<uchar>(estimatedPoint), srcCenterPoint = src.at<uchar>(center);
+				int delta = abs(srcCenterPoint - srcEstimatedPoint);
 
 				if (delta < th && out.at<uchar>(estimatedPoint) == 0 && mask.at<uchar>(estimatedPoint) == 0) {
 					mask.at<uchar>(estimatedPoint) = 1;
@@ -37,29 +38,31 @@ Mat grow(Mat src, Mat mask, Mat out, int th, Point seed) {
 	return mask;
 }
 
-int regionGrowingGrayscale(Mat src, int th, double minRegionFactor, int maxRegionNumber) {
+int regionGrowingGrayscale(Mat src, int th, int maxRegionNumber, double minRegionFactor = .01) {
+	Mat mask = Mat::zeros(src.rows, src.cols, CV_8U), out = Mat::zeros(src.rows, src.cols, CV_8U);
 	uchar labels = 1;
-	int minRegionArea = int(minRegionFactor * src.rows * src.cols);
-	Mat out = Mat::zeros(src.rows, src.cols, CV_8U), mask = Mat::zeros(src.rows, src.cols, CV_8U);
+	int minRegionArea = int(src.rows * src.cols * minRegionFactor);
 
-	for (int i = 0; i < src.cols; i++) {
-		for (int j = 0; j < src.rows; j++) {
+	for (int i = 0; i < src.rows; i++) {
+		for (int j = 0; j < src.cols; j++) {
 			if (out.at<uchar>(i, j) == 0) {
-				mask = grow(src, mask, out, th, Point(i, j));
+				mask = grow(src, mask, out, Point(j, i), th);
 				int maskArea = countNonZero(mask);
 
 				if (maskArea > minRegionArea) {
 					out.setTo(labels, mask);
-					labels++;
 
 					imshow("region", mask * 255);
 					waitKey(0);
 
+					labels++;
+
 					if (labels > maxRegionNumber) {
-						cout << "oversegmentation" << endl;
+						cout << "Oversegmentation" << endl;
 						return -2;
 					}
 				}
+
 				mask.setTo(0);
 			}
 		}
@@ -69,19 +72,14 @@ int regionGrowingGrayscale(Mat src, int th, double minRegionFactor, int maxRegio
 }
 
 int main() {
-	Mat img = imread("../images/lenna.jpg", IMREAD_COLOR);
+	Mat img = imread("../images/lenna.jpg", IMREAD_GRAYSCALE);
 
 	if (img.empty()) {
 		cout << "Error reading image" << endl;
 		return -1;
 	}
 
-	if (img.rows > 500 || img.cols > 500) {
-		resize(img, img, Size(0, 0), .5, .5);
-	}
-
 	imshow("original", img);
-	waitKey(0);
-
-	return regionGrowingGrayscale(img, 210, .01, 10);
+	
+	return regionGrowingGrayscale(img, 3, 10);
 }
