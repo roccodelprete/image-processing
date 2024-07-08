@@ -74,7 +74,7 @@ Mat kMeansGrayScale(Mat src, int k, double thresh) {
 	return out;
 }
 
-Mat kMeansRGB(Mat src, int k, int thresh) {
+Mat kMeansRGB(Mat src, int k, double thresh) {
 	srand(time(NULL));
 
 	vector<Vec3b>centers(k, 0);

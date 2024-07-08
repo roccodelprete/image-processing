@@ -62,6 +62,9 @@ int regionGrowingGrayscale(Mat src, int th, int maxRegionNumber, double minRegio
 						return -2;
 					}
 				}
+				else {
+					out += mask * 255;
+				}
 
 				mask.setTo(0);
 			}
