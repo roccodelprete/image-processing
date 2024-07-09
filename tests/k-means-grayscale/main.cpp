@@ -8,7 +8,7 @@ using namespace cv;
 
 Mat kMeans(Mat src, int k, double th) {
 	Mat out = src.clone();
-	vector<double> newMean(k, 0.0), oldMean(k, 0.0);
+	vector<double> oldMean(k, 0.0), newMean(k, 0.0);
 	vector<vector<Point>> clusters(k);
 	vector<uchar> centers(k, 0);
 	bool isChanged = true;
@@ -26,20 +26,20 @@ Mat kMeans(Mat src, int k, double th) {
 			clusters[i].clear();
 		}
 
-		for (int i = 0; i < src.rows; i++) {
-			for (int j = 0; j < src.cols; j++) {
+		for (int x = 0; x < src.rows; x++) {
+			for (int y = 0; y < src.cols; y++) {
 				int minDistance = INT_MAX, minDistanceIndex = 0;
 
-				for (int t = 0; t < centers.size(); t++) {
-					int distance = abs(src.at<uchar>(i, j) - centers[t]);
+				for (int i = 0; i < centers.size(); i++) {
+					int distance = abs(src.at<uchar>(x, y) - centers[i]);
 
 					if (distance < minDistance) {
 						minDistance = distance;
-						minDistanceIndex = t;
+						minDistanceIndex = i;
 					}
 				}
 
-				clusters[minDistanceIndex].push_back(Point(i, j));
+				clusters[minDistanceIndex].push_back(Point(x, y));
 			}
 		}
 
@@ -52,7 +52,7 @@ Mat kMeans(Mat src, int k, double th) {
 			centers[i] = uchar(newMean[i]);
 		}
 
-		for (int i = 0; i < k; i++) {
+		for (int i = 0; i < newMean.size(); i++) {
 			if (abs(newMean[i] - oldMean[i]) > th) {
 				isChanged = true;
 				break;
