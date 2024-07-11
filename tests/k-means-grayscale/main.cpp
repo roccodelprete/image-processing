@@ -1,16 +1,15 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
-#include <ctime>
 #include <vector>
 
 using namespace std;
 using namespace cv;
 
-Mat kMeans(Mat src, int k, double th) {
+Mat kMeansGrayscale(Mat src, double th, int k) {
 	Mat out = src.clone();
-	vector<double> oldMean(k, 0.0), newMean(k, 0.0);
-	vector<vector<Point>> clusters(k);
 	vector<uchar> centers(k, 0);
+	vector<double> newMean(k, 0.0), oldMean(k, 0.0);
+	vector<vector<Point>> clusters(k);
 	bool isChanged = true;
 
 	for (int i = 0; i < centers.size(); i++) {
@@ -80,8 +79,8 @@ int main() {
 	}
 
 	imshow("original", img);
-	imshow("k-means image", kMeans(img, 3, .01));
-	waitKey(0);
+	imshow("k-means image", kMeansGrayscale(img, .01, 2));
+	waitKey();
 
 	return 0;
 }

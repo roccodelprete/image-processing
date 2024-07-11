@@ -5,29 +5,27 @@
 using namespace std;
 using namespace cv;
 
-Mat grow(Mat src, Mat mask, Mat out, Point seed, int th) {
-	Point pointsShift[8] = {
+Mat grow(Mat src, Mat out, Mat mask, int th, Point seed) {
+	Point points[] = {
 		Point(-1, -1), Point(-1, 0), Point(-1, 1),
 		Point(0, -1), Point(0, 1),
-		Point(1, -1), Point(1, 0), Point(1, 1)
+		Point(1, -1), Point(1, 0), Point(1, 1),
 	};
-
 	stack<Point> pointsStack;
 	pointsStack.push(seed);
 
 	while (!pointsStack.empty()) {
-		auto center = pointsStack.top();
+		Point center = pointsStack.top();
 		mask.at<uchar>(center) = 1;
 		pointsStack.pop();
 
 		for (int i = 0; i < 8; i++) {
-			auto estimatedPoint = center + pointsShift[i];
+			Point estimatedPoint = center + points[i];
 
-			if (estimatedPoint.x >= 0 && estimatedPoint.y >= 0 && estimatedPoint.x < src.cols && estimatedPoint.y < src.rows) {
-				auto srcEstimatedPoint = src.at<uchar>(estimatedPoint), srcCenterPoint = src.at<uchar>(center);
-				int delta = abs(srcCenterPoint - srcEstimatedPoint);
+			if (estimatedPoint.x >= 0 && estimatedPoint.y >= 0 && estimatedPoint.y < src.rows && estimatedPoint.x < src.cols) {
+				uchar delta = abs(src.at<uchar>(center) - src.at<uchar>(estimatedPoint));
 
-				if (delta < th && out.at<uchar>(estimatedPoint) == 0 && mask.at<uchar>(estimatedPoint) == 0) {
+				if (delta < th && mask.at<uchar>(estimatedPoint) == 0 && out.at<uchar>(estimatedPoint) == 0) {
 					mask.at<uchar>(estimatedPoint) = 1;
 					pointsStack.push(estimatedPoint);
 				}
@@ -38,36 +36,35 @@ Mat grow(Mat src, Mat mask, Mat out, Point seed, int th) {
 	return mask;
 }
 
-int regionGrowingGrayscale(Mat src, int th, int maxRegionNumber, double minRegionFactor = .01) {
-	Mat mask = Mat::zeros(src.rows, src.cols, CV_8U), out = Mat::zeros(src.rows, src.cols, CV_8U);
-	uchar labels = 1;
+int regionGrowingGrayscale(Mat src, int th, double minRegionFactor, int maxRegionNumber) {
 	int minRegionArea = int(src.rows * src.cols * minRegionFactor);
+	Mat out = Mat::zeros(src.rows, src.cols, CV_8U), mask = Mat::zeros(src.rows, src.cols, CV_8U);
+	uchar labels = 1;
 
-	for (int i = 0; i < src.rows; i++) {
-		for (int j = 0; j < src.cols; j++) {
+	for (int i = 0; i < src.cols; i++) {
+		for (int j = 0; j < src.rows; j++) {
 			if (out.at<uchar>(i, j) == 0) {
-				mask = grow(src, mask, out, Point(j, i), th);
-				int maskArea = countNonZero(mask);
+				mask = grow(src, out, mask, th, Point(i, j));
+				int maskArea = int(sum(mask).val[0]);
 
 				if (maskArea > minRegionArea) {
-					out.setTo(labels, mask);
+					out += mask * labels;
 
 					imshow("region", mask * 255);
-					waitKey(0);
-
+					waitKey();
 					labels++;
 
 					if (labels > maxRegionNumber) {
-						cout << "Oversegmentation" << endl;
+						cout << "oversegmentation" << endl;
 						return -2;
 					}
 				}
-				else {
-					out += mask * 255;
-				}
-
-				mask.setTo(0);
 			}
+			else {
+				out += mask * 255;
+			}
+				
+			mask -= mask;
 		}
 	}
 
@@ -83,6 +80,6 @@ int main() {
 	}
 
 	imshow("original", img);
-	
-	return regionGrowingGrayscale(img, 3, 10);
+
+	return regionGrowingGrayscale(img, 3, .01, 5);
 }

@@ -6,7 +6,7 @@ using namespace std;
 using namespace cv;
 
 vector<double> normalizeHistogram(Mat src) {
-	vector<double> histogram(256, 0.0f);
+	vector<double> histogram(256, 0.0);
 
 	for (int i = 0; i < src.rows; i++) {
 		for (int j = 0; j < src.cols; j++) {
@@ -23,14 +23,13 @@ vector<double> normalizeHistogram(Mat src) {
 
 Mat otsu(Mat src) {
 	vector<double> histogram = normalizeHistogram(src);
+	double globalMean = 0.0, prob = 0.0, cumulativeMean = 0.0, maxVariance = 0.0;
+	int th = 0;
+	Mat gauss, out;
 
-	double globalMean = 0.0f;
 	for (int i = 0; i < histogram.size(); i++) {
 		globalMean += (i + 1) * histogram[i];
 	}
-
-	int th = 0;
-	double prob = 0.0f, cumulativeMean = 0.0f, maxVariance = 0.0f;
 
 	for (int i = 0; i < histogram.size(); i++) {
 		prob += histogram[i];
@@ -38,12 +37,11 @@ Mat otsu(Mat src) {
 		double currentVariance = pow(prob * globalMean - cumulativeMean, 2) / (prob * (1 - prob));
 
 		if (currentVariance > maxVariance) {
-			th = i;
 			maxVariance = currentVariance;
+			th = i;
 		}
 	}
 
-	Mat gauss, out;
 	GaussianBlur(src, gauss, Size(3, 3), 0);
 	threshold(gauss, out, th, 255, THRESH_BINARY);
 
@@ -60,7 +58,7 @@ int main() {
 
 	imshow("original", img);
 	imshow("otsu image", otsu(img));
-	waitKey(0);
+	waitKey();
 
 	return 0;
 }

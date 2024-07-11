@@ -5,23 +5,23 @@
 using namespace std;
 using namespace cv;
 
-Mat kMeans(Mat src, int k, double th) {
+Mat kMeansRGB(Mat src, int k, double th) {
 	Mat out = src.clone();
-	vector<Vec3d> oldMean(k, 0), newMean(k, 0);
+	vector<Vec3b> centers(k, Vec3b(0, 0, 0));
+	vector<Vec3d> newMean(k, Vec3d(0.0, 0.0, 0.0)), oldMean(k, Vec3d(0.0, 0.0, 0.0));
 	vector<vector<Point>> clusters(k);
-	vector<Vec3b> centers(k, 0);
 	bool isChanged = true;
 
 	for (int i = 0; i < centers.size(); i++) {
-		centers[i] = src.at<uchar>(rand() % src.rows, rand() % src.cols);
+		centers[i] = src.at<Vec3b>(rand() % src.rows, rand() % src.cols);
 	}
 
 	while (isChanged) {
 		isChanged = false;
 
-		for (int i = 0; i < clusters.size(); i++) {
+		for (int i = 0; i < k; i++) {
 			oldMean[i] = newMean[i];
-			newMean[i] = 0;
+			newMean[i] = Vec3d(0.0, 0.0, 0.0);
 			clusters[i].clear();
 		}
 
@@ -32,10 +32,7 @@ Mat kMeans(Mat src, int k, double th) {
 
 				for (int i = 0; i < centers.size(); i++) {
 					auto pixel = src.at<Vec3b>(x, y);
-					double distanceBlue = centers[i].val[0] - pixel.val[0];
-					double distanceGreen = centers[i].val[1] - pixel.val[1];
-					double distanceRed = centers[i].val[2] - pixel.val[2];
-					double distance = sqrt(pow(distanceBlue, 2) + pow(distanceGreen, 2) + pow(distanceRed, 2));
+					double distance = sqrt(pow(centers[i][0] - pixel[0], 2) + pow(centers[i][1] - pixel[1], 2) + pow(centers[i][2] - pixel[2], 2));
 
 					if (distance < minDistance) {
 						minDistance = distance;
@@ -49,25 +46,23 @@ Mat kMeans(Mat src, int k, double th) {
 
 		for (int i = 0; i < clusters.size(); i++) {
 			for (int j = 0; j < clusters[i].size(); j++) {
-				newMean[i].val[0] += src.at<Vec3b>(clusters[i][j].x, clusters[i][j].y).val[0];
-				newMean[i].val[1] += src.at<Vec3b>(clusters[i][j].x, clusters[i][j].y).val[1];
-				newMean[i].val[2] += src.at<Vec3b>(clusters[i][j].x, clusters[i][j].y).val[2];
+				auto pixel = src.at<Vec3b>(clusters[i][j].x, clusters[i][j].y);
+				newMean[i][0] += pixel[0];
+				newMean[i][1] += pixel[1];
+				newMean[i][2] += pixel[2];
 			}
 
-			newMean[i].val[0] /= clusters[i].size();
-			newMean[i].val[1] /= clusters[i].size();
-			newMean[i].val[2] /= clusters[i].size();
+			newMean[i][0] /= clusters[i].size();
+			newMean[i][1] /= clusters[i].size();
+			newMean[i][2] /= clusters[i].size();
 			centers[i] = Vec3b(newMean[i]);
 		}
 
 		for (int i = 0; i < newMean.size(); i++) {
-			double distanceBlue = newMean[i].val[0] - oldMean[i].val[0];
-			double distanceGreen = newMean[i].val[1] - oldMean[i].val[1];
-			double distanceRed = newMean[i].val[2] - oldMean[i].val[2];
-			double distance = sqrt(pow(distanceBlue, 2) + pow(distanceGreen, 2) + pow(distanceRed, 2));
+			double distance = sqrt(pow(newMean[i][0] - oldMean[i][0], 2) + pow(newMean[i][1] - oldMean[i][1], 2) + pow(newMean[i][2] - oldMean[i][2], 2));
 
 			if (distance > th) {
-				isChanged = false;
+				isChanged = true;
 				break;
 			}
 		}
@@ -80,7 +75,7 @@ Mat kMeans(Mat src, int k, double th) {
 	}
 
 	return out;
-} 
+}
 
 int main() {
 	srand(time(NULL));
@@ -93,7 +88,7 @@ int main() {
 	}
 
 	imshow("original", img);
-	imshow("k-means image", kMeans(img, 8, .01));
+	imshow("k-means image", kMeansRGB(img, 5, .01));
 	waitKey(0);
 
 	return 0;
