@@ -9,10 +9,10 @@ Mat kMeansRGB(Mat src, int k, double th) {
     Mat out = src.clone();
     vector<Vec3d> oldMean(k, Vec3d(0.0, 0.0, 0.0)), newMean(k, Vec3d(0.0, 0.0, 0.0));
     vector<Vec3b> centers(k, Vec3b(0, 0, 0));
-    vctor<vector<Point>> clusters(k);
+    vector<vector<Point>> clusters(k);
     bool isChanged = true;
     
-    for (int i = 0, i < centers.size(); i++) {
+    for (int i = 0; i < centers.size(); i++) {
         centers[i] = src.at<Vec3b>(rand() % src.rows, rand() % src.cols);
     }
     
@@ -20,7 +20,7 @@ Mat kMeansRGB(Mat src, int k, double th) {
         isChanged = false;
         
         for (int i = 0; i < k; i++) {
-            olMean[i] = newMean[i];
+            oldMean[i] = newMean[i];
             newMean[i] = 0;
             clusters[i].clear();
         }
