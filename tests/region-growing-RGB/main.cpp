@@ -9,9 +9,10 @@ Mat grow(Mat src, Mat out, Mat mask, int th, Point seed) {
 	Point points[] = {
 		Point(-1, -1), Point(-1, 0), Point(-1, 1),
 		Point(0, -1), Point(0, 1),
-		Point(1, -1), Point(1, 0), Point(1, 1),
+		Point(1, -1), Point(1, 0), Point(1, 1)
 	};
 	stack<Point> stack;
+
 	stack.push(seed);
 
 	while (!stack.empty()) {
@@ -20,15 +21,15 @@ Mat grow(Mat src, Mat out, Mat mask, int th, Point seed) {
 		stack.pop();
 
 		for (int i = 0; i < 8; i++) {
-			Point estimatedPoint = center + points[i];
+			Point point = center + points[i];
 
-			if (estimatedPoint.x >= 0 && estimatedPoint.y >= 0 && estimatedPoint.x < src.cols && estimatedPoint.y < src.rows) {
-				Vec3b srcCenterPixel = src.at<Vec3b>(center), srcEstimatedPointPixel = src.at<Vec3b>(estimatedPoint);
-				int distance = pow(srcCenterPixel[0] - srcEstimatedPointPixel[0], 2) + pow(srcCenterPixel[1] - srcEstimatedPointPixel[1], 2) + pow(srcCenterPixel[2] - srcEstimatedPointPixel[2], 2);
+			if (point.x >= 0 && point.y >= 0 && point.x < src.cols && point.y < src.rows) {
+				Vec3b srcCenter = src.at<Vec3b>(center), srcPoint = src.at<Vec3b>(point);
+				double delta = pow(srcCenter[0] - srcPoint[0], 2) + pow(srcCenter[1] - srcPoint[1], 2) + pow(srcCenter[2] - srcPoint[2], 2);
 
-				if (distance < th && mask.at<uchar>(estimatedPoint) == 0 && out.at<uchar>(estimatedPoint) == 0) {
-					stack.push(estimatedPoint);
-					mask.at<uchar>(estimatedPoint) = 1;
+				if (delta < th && out.at<uchar>(point) == 0 && mask.at<uchar>(point) == 0) {
+					mask.at<uchar>(point) = 1;
+					stack.push(point);
 				}
 			}
 		}
@@ -37,10 +38,10 @@ Mat grow(Mat src, Mat out, Mat mask, int th, Point seed) {
 	return mask;
 }
 
-int regionGrowingRGB(Mat src, double minRegionFactor, int maxRegionNumber, int th) {
-	int minRegionArea = int(minRegionFactor * src.rows * src.cols);
+int regionGrowingRGB(Mat src, int th, int maxRegionNumber, double minRegionFactor) {
+	int minRegionArea = int(src.rows * src.cols * minRegionFactor);
 	Mat out = Mat::zeros(src.rows, src.cols, CV_8U), mask = Mat::zeros(src.rows, src.cols, CV_8U);
-	uchar labels = 1;
+	uchar  labels = 1;
 
 	for (int x = 0; x < src.cols; x++) {
 		for (int y = 0; y < src.rows; y++) {
@@ -77,15 +78,11 @@ int main() {
 	Mat img = imread("../images/lenna.jpg", IMREAD_COLOR);
 
 	if (img.empty()) {
-		cout << "Error reading images" << endl;
+		cout << "Error reading image" << endl;
 		return -1;
-	}
-
-	if (img.rows > 500 || img.cols > 500) {
-		resize(img, img, Size(0, 0), .5, .5);
 	}
 
 	imshow("original", img);
 
-	return regionGrowingRGB(img, .04, 5, 15);
+	return regionGrowingRGB(img, 15, 5, .01);
 }

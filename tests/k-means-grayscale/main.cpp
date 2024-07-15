@@ -6,11 +6,11 @@ using namespace std;
 using namespace cv;
 
 Mat kMeansGrayscale(Mat src, int k, double th) {
-	Mat out = src.clone();
+	vector<uchar> centers(k, uchar(0));
 	vector<double> oldMean(k, 0.0), newMean(k, 0.0);
-	vector<uchar> centers(k, 0);
 	vector<vector<Point>> clusters(k);
 	bool isChanged = true;
+	Mat out = src.clone();
 
 	for (int i = 0; i < centers.size(); i++) {
 		centers[i] = src.at<uchar>(rand() % src.rows, rand() % src.cols);
@@ -28,9 +28,9 @@ Mat kMeansGrayscale(Mat src, int k, double th) {
 		for (int x = 0; x < src.rows; x++) {
 			for (int y = 0; y < src.cols; y++) {
 				int minDistance = INT_MAX, minDistanceIndex = 0;
-				
+
 				for (int i = 0; i < centers.size(); i++) {
-					int distance = abs(centers[i] - src.at<uchar>(x, y));
+					int distance = abs(src.at<uchar>(x, y) - centers[i]);
 
 					if (distance < minDistance) {
 						minDistance = distance;
@@ -48,14 +48,11 @@ Mat kMeansGrayscale(Mat src, int k, double th) {
 			}
 
 			newMean[i] /= clusters[i].size();
-
 			centers[i] = uchar(newMean[i]);
 		}
 
 		for (int i = 0; i < newMean.size(); i++) {
-			double distance = abs(newMean[i] - oldMean[i]);
-
-			if (distance > th) {
+			if (abs(newMean[i] - oldMean[i]) > th) {
 				isChanged = true;
 				break;
 			}
@@ -82,7 +79,7 @@ int main() {
 	}
 
 	imshow("original", img);
-	imshow("k-means image", kMeansGrayscale(img, 3, .01));
+	imshow("k-means image", kMeansGrayscale(img, 3, .04));
 	waitKey();
 
 	return 0;

@@ -1,17 +1,18 @@
 #include <iostream>
-#include <stack>
 #include <opencv2/opencv.hpp>
+#include <stack>
 
 using namespace std;
 using namespace cv;
 
-Mat grow(Mat src, Mat mask, Mat out, int th, Point seed) {
+Mat grow(Mat src, Mat out, Mat mask, int th, Point seed) {
 	Point points[] = {
 		Point(-1, -1), Point(-1, 0), Point(-1, 1),
 		Point(0, -1), Point(0, 1),
-		Point(1, -1), Point(1, 0), Point(1, 1),
+		Point(1, -1), Point(1, 0), Point(1, 1)
 	};
 	stack<Point> stack;
+
 	stack.push(seed);
 
 	while (!stack.empty()) {
@@ -20,14 +21,14 @@ Mat grow(Mat src, Mat mask, Mat out, int th, Point seed) {
 		stack.pop();
 
 		for (int i = 0; i < 8; i++) {
-			Point estimatedPoint = center + points[i];
+			Point point = center + points[i];
 
-			if (estimatedPoint.x >= 0 && estimatedPoint.y >= 0 && estimatedPoint.x < src.cols && estimatedPoint.y < src.rows) {
-				uchar delta = abs(src.at<uchar>(center) - src.at<uchar>(estimatedPoint));
+			if (point.x >= 0 && point.x < src.cols && point.y >= 0 && point.y < src.rows) {
+				uchar delta = abs(src.at<uchar>(center) - src.at<uchar>(point));
 
-				if (delta < th && out.at<uchar>(estimatedPoint) == 0 && mask.at<uchar>(estimatedPoint) == 0) {
-					mask.at<uchar>(estimatedPoint) = 1;
-					stack.push(estimatedPoint);
+				if (delta < th && mask.at<uchar>(point) == 0 && out.at<uchar>(point) == 0) {
+					mask.at<uchar>(point) = 1;
+					stack.push(point);
 				}
 			}
 		}
@@ -37,14 +38,14 @@ Mat grow(Mat src, Mat mask, Mat out, int th, Point seed) {
 }
 
 int regionGrowingGrayscale(Mat src, int th, int maxRegionNumber, double minRegionFactor) {
-	int minRegionArea = int(minRegionFactor * src.rows * src.cols);
+	int minRegionArea = int(src.rows * src.cols * minRegionFactor);
 	uchar labels = 1;
 	Mat out = Mat::zeros(src.rows, src.cols, CV_8U), mask = Mat::zeros(src.rows, src.cols, CV_8U);
 
 	for (int x = 0; x < src.cols; x++) {
 		for (int y = 0; y < src.rows; y++) {
 			if (out.at<uchar>(Point(x, y)) == 0) {
-				mask = grow(src, mask, out, th, Point(x, y));
+				mask = grow(src, out, mask, th, Point(x, y));
 				int maskArea = int(sum(mask)[0]);
 
 				if (maskArea > minRegionArea) {
@@ -79,13 +80,8 @@ int main() {
 		cout << "Error reading image" << endl;
 		return -1;
 	}
-	
-	if (img.rows > 500 || img.cols > 500) {
-		resize(img, img, Size(0, 0), .5, .5);
-	}
 
 	imshow("original", img);
-	
-	return regionGrowingGrayscale(img, 5, 5, .04);
 
+	return regionGrowingGrayscale(img, 3, 5, .04);
 }

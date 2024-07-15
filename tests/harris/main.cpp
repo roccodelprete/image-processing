@@ -19,26 +19,27 @@ Mat drawCircles(Mat R, int th) {
 	return out;
 }
 
-Mat harris(Mat src, int th, double k, int ksize = 3) {
-	Mat dx, dy, dx2, dy2, dxy, c_00, c_11, c_10, trace2, mainDiagonal, secondaryDiagonal;
+Mat harris(Mat src, int th, double k) {
+	Mat dx, dy, dxy, dx2, dy2, c_00, c_11, c_10, trace2, mainDiagonal, secondaryDiagonal;
 
-	Sobel(src, dx, CV_32FC1, 1, 0, ksize);
-	Sobel(src, dy, CV_32FC1, 0, 1, ksize);
+	Sobel(src, dx, CV_32FC1, 1, 0);
+	Sobel(src, dy, CV_32FC1, 0, 1);
+	multiply(dx, dy, dxy);
 	pow(dx, 2, dx2);
 	pow(dy, 2, dy2);
-	multiply(dx, dy, dxy);
 	GaussianBlur(dx2, c_00, Size(7, 7), 0);
 	GaussianBlur(dy2, c_11, Size(7, 7), 0);
 	GaussianBlur(dxy, c_10, Size(7, 7), 0);
-	Mat c_01 = c_10;
-	multiply(c_00, c_11, mainDiagonal);
+	Mat c_01 = c_10.clone();
+	multiply(c_11, c_00, mainDiagonal);
 	multiply(c_10, c_01, secondaryDiagonal);
+
 	Mat det = mainDiagonal - secondaryDiagonal;
 	Mat trace = c_00 + c_11;
 	pow(trace, 2, trace2);
 	Mat R = det - k * trace2;
-	normalize(R, R, 0, 255, NORM_MINMAX, CV_32FC1);
-	
+	normalize(R, R, 0, 255, NORM_MINMAX);
+
 	return drawCircles(R, th);
 }
 
@@ -47,11 +48,11 @@ int main() {
 
 	if (img.empty()) {
 		cout << "Error reading image" << endl;
-		return 0;
+		return -1;
 	}
 
 	imshow("original", img);
-	imshow("harris image", harris(img, 110, .01));
+	imshow("harris image", harris(img, 120, .01));
 	waitKey();
 
 	return 0;

@@ -10,26 +10,26 @@ Mat nonMaximaSuppression(Mat magnitude, Mat orientations) {
 	for (int i = 1; i < magnitude.rows - 1; i++) {
 		for (int j = 1; j < magnitude.cols - 1; j++) {
 			float angle = orientations.at<float>(i, j) > 180 ? orientations.at<float>(i, j) - 360 : orientations.at<float>(i, j);
-			auto magnitudePoint = magnitude.at<uchar>(i, j);
+			uchar point = magnitude.at<uchar>(i, j);
 
 			if ((angle > -22.5 && angle <= 22.5) || (angle > 157.5 || angle <= -157.5)) {
-				if (magnitudePoint > magnitude.at<uchar>(i, j + 1) && magnitudePoint > magnitude.at<uchar>(i, j - 1)) {
-					out.at<uchar>(i, j) = magnitudePoint;
+				if (point > magnitude.at<uchar>(i, j + 1) && point > magnitude.at<uchar>(i, j - 1)) {
+					out.at<uchar>(i, j) = point;
 				}
 			}
 			else if ((angle > -67.5 && angle <= -22.5) || (angle > 112.5 && angle <= 157.5)) {
-				if (magnitudePoint > magnitude.at<uchar>(i - 1, j + 1) && magnitudePoint > magnitude.at<uchar>(i + 1, j - 1)) {
-					out.at<uchar>(i, j) = magnitudePoint;
+				if (point > magnitude.at<uchar>(i - 1, j + 1) && point > magnitude.at<uchar>(i + 1, j - 1)) {
+					out.at<uchar>(i, j) = point;
 				}
 			}
 			else if ((angle > -112.5 && angle <= -67.5) || (angle > 67.5 && angle <= 112.5)) {
-				if (magnitudePoint > magnitude.at<uchar>(i - 1, j) && magnitudePoint > magnitude.at<uchar>(i + 1, j)) {
-					out.at<uchar>(i, j) = magnitudePoint;
+				if (point > magnitude.at<uchar>(i - 1, j) && point > magnitude.at<uchar>(i + 1, j)) {
+					out.at<uchar>(i, j) = point;
 				}
 			}
-			else if ((angle > -57.5 && angle <= -112.5) || (angle > 22.5 && angle <= 67.5)) {
-				if (magnitudePoint > magnitude.at<uchar>(i - 1, j - 1) && magnitudePoint > magnitude.at<uchar>(i + 1, j + 1)) {
-					out.at<uchar>(i, j) = magnitudePoint;
+			else if ((angle > -157.5 && angle <= -112.5) || (angle > 22.5 && angle <= 67.5)) {
+				if (point > magnitude.at<uchar>(i - 1, j - 1) && point > magnitude.at<uchar>(i + 1, j + 1)) {
+					out.at<uchar>(i, j) = point;
 				}
 			}
 		}
@@ -38,7 +38,7 @@ Mat nonMaximaSuppression(Mat magnitude, Mat orientations) {
 	return out;
 }
 
-Mat hysterisisTh(Mat src, int lowTh, int highTh) {
+Mat hysterisisThresholding(Mat src, int lowTh, int highTh) {
 	Mat out = Mat::zeros(src.rows, src.cols, CV_8U);
 
 	for (int i = 1; i < src.rows - 1; i++) {
@@ -61,9 +61,9 @@ Mat hysterisisTh(Mat src, int lowTh, int highTh) {
 }
 
 Mat canny(Mat src, int lowTh, int highTh, int ksize = 3) {
-	Mat dx, dy, dx2, dy2, gauss, magnitude, orientations;
+	Mat gauss, dx, dy, dx2, dy2, magnitude, orientations;
 
-	GaussianBlur(src, gauss, Size(3, 3), 0);
+	GaussianBlur(src, gauss, Size(5, 5), 0);
 	Sobel(gauss, dx, CV_32FC1, 1, 0, ksize);
 	Sobel(gauss, dy, CV_32FC1, 0, 1, ksize);
 	pow(dx, 2, dx2);
@@ -72,7 +72,7 @@ Mat canny(Mat src, int lowTh, int highTh, int ksize = 3) {
 	normalize(magnitude, magnitude, 0, 255, NORM_MINMAX, CV_8U);
 	phase(dx, dy, orientations, true);
 
-	return hysterisisTh(nonMaximaSuppression(magnitude, orientations), lowTh, highTh);
+	return hysterisisThresholding(nonMaximaSuppression(magnitude, orientations), lowTh, highTh);
 }
 
 int main() {
@@ -84,7 +84,7 @@ int main() {
 	}
 
 	imshow("original", img);
-	imshow("canny image", canny(img, 60, 100));
+	imshow("canny image", canny(img, 75, 110));
 	waitKey();
 
 	return 0;

@@ -4,18 +4,16 @@
 using namespace std;
 using namespace cv;
 
-Mat drawLines(Mat src, Mat votes, int votesTh, int distance) {
+Mat drawLines(Mat src, Mat votes, int distance, int votesTh) {
 	Mat out = src.clone();
 
 	for (int i = 0; i < votes.rows; i++) {
 		for (int j = 0; j < votes.cols; j++) {
 			if (votes.at<uchar>(i, j) > votesTh) {
 				double theta = (j - 90) * CV_PI / 180;
-				double cos_t = cos(theta), sin_t = sin(theta);
-				int x = (i - distance) * cos_t, y = (i - distance) * sin_t;
-				Point pt1(cvRound(x - distance * (-sin_t)), cvRound(y - distance * cos_t));
-				Point pt2(cvRound(x + distance * (-sin_t)), cvRound(y + distance * cos_t));
-
+				int x = (i - distance) * cos(theta), y = (i - distance) * sin(theta);
+				Point pt1(cvRound(x - distance * (-sin(theta))), cvRound(y - distance * cos(theta)));
+				Point pt2(cvRound(x + distance * (-sin(theta))), cvRound(y + distance * cos(theta)));
 				line(out, pt1, pt2, Scalar(127), 2);
 			}
 		}
@@ -35,14 +33,14 @@ Mat houghLines(Mat src, int lowTh, int highTh, int votesTh) {
 		for (int j = 0; j < edges.cols; j++) {
 			if (edges.at<uchar>(i, j) == 255) {
 				for (int theta = 0; theta < 180; theta++) {
-					int rho = distance + j * cos((theta - 90) * CV_PI / 180) + i * sin((theta - 90) * CV_PI / 180);
+					double rho = distance + j * cos((theta - 90) * CV_PI / 180) + i * sin((theta - 90) * CV_PI / 180);
 					votes.at<uchar>(rho, theta)++;
 				}
 			}
 		}
 	}
 
-	return drawLines(src, votes, votesTh, distance);
+	return drawLines(src, votes, distance, votesTh);
 }
 
 int main() {
@@ -54,7 +52,7 @@ int main() {
 	}
 
 	imshow("original", img);
-	imshow("hough lines image", houghLines(img, 90, 160, 100));
+	imshow("hough lines image", houghLines(img, 110, 160, 100));
 	waitKey();
 
 	return 0;

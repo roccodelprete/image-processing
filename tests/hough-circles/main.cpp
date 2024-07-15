@@ -4,15 +4,15 @@
 using namespace std;
 using namespace cv;
 
-Mat drawCircles(Mat src, Mat edges, Mat votes, int minRadius, int maxRadius, int votesTh) {
+Mat drawCircles(Mat src, Mat edges, Mat votes, int votesTh, int minRadius, int maxRadius) {
 	Mat out = src.clone();
 
 	for (int radius = minRadius; radius <= maxRadius; radius++) {
-		for (int b = 0; b < edges.rows; b++) {
-			for (int a = 0; a < edges.cols; a++) {
+		for (int a = 0; a < edges.cols; a++) {
+			for (int b = 0; b < edges.rows; b++) {
 				if (votes.at<uchar>(b, a, radius - minRadius) > votesTh) {
-					circle(out, Point(a, b), 3, Scalar(0), 2);
-					circle(out, Point(a, b), radius, Scalar(0), 2);
+					circle(out, Point(a, b), 2, Scalar(0));
+					circle(out, Point(a, b), radius, Scalar(0));
 				}
 			}
 		}
@@ -21,7 +21,7 @@ Mat drawCircles(Mat src, Mat edges, Mat votes, int minRadius, int maxRadius, int
 	return out;
 }
 
-Mat houghCircles(Mat src, int lowTh, int highTh, int votesTh, int minRadius, int maxRadius) {
+Mat houghCircles(Mat src, int lowTh, int highTh, int minRadius, int maxRadius, int votesTh) {
 	int sizes[] = { src.rows, src.cols, maxRadius - minRadius + 1 };
 	Mat gauss, edges, votes = Mat::zeros(3, sizes, CV_8U);
 
@@ -33,17 +33,18 @@ Mat houghCircles(Mat src, int lowTh, int highTh, int votesTh, int minRadius, int
 			if (edges.at<uchar>(i, j) == 255) {
 				for (int radius = minRadius; radius <= maxRadius; radius++) {
 					for (int theta = 0; theta < 360; theta++) {
-						int a = j - radius * sin(theta * CV_PI / 180), b = i - radius * cos(theta * CV_PI / 180);
-						if (a >= 0 && b >= 0 && a < edges.cols && b < edges.rows) {
+						int a = j - radius * cos(theta * CV_PI / 180), b = i - radius * sin(theta * CV_PI / 180);
+
+						if (a >= 0 && a < edges.cols && b >= 0 && b < edges.rows) {
 							votes.at<uchar>(b, a, radius - minRadius)++;
-						 }
+						}
 					}
 				}
 			}
 		}
 	}
-	
-	return drawCircles(src, edges, votes, minRadius, maxRadius, votesTh);
+
+	return drawCircles(src, edges, votes, votesTh, minRadius, maxRadius);
 }
 
 int main() {
@@ -55,7 +56,7 @@ int main() {
 	}
 
 	imshow("original", img);
-	imshow("hough circles image", houghCircles(img, 160, 210, 140, 40, 90));
+	imshow("hough circles image", houghCircles(img, 150, 210, 40, 90, 140));
 	waitKey();
 
 	return 0;

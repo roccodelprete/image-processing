@@ -34,15 +34,15 @@ Mat otsu(Mat src) {
 	for (int i = 0; i < histogram.size(); i++) {
 		prob += histogram[i];
 		cumulativeMean += (i + 1) * histogram[i];
-		double currentVariance = pow(prob * globalMean - cumulativeMean, 2) / (prob * (1 - prob));
+		double variance = pow(prob * globalMean - cumulativeMean, 2) / (prob * (1 - prob));
 
-		if (currentVariance > maxVariance) {
-			maxVariance = currentVariance;
+		if (variance > maxVariance) {
+			maxVariance = variance;
 			th = i;
 		}
 	}
 
-	GaussianBlur(src, gauss, Size(3, 3), 0);
+	GaussianBlur(src, gauss, Size(5, 5), 0);
 	threshold(gauss, out, th, 255, THRESH_BINARY);
 
 	return out;

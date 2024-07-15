@@ -26,12 +26,10 @@ Mat doubleThresholding(Mat src, int lowTh, int highTh) {
 
 	for (int i = 0; i < src.rows; i++) {
 		for (int j = 0; j < src.cols; j++) {
-			auto pixel = src.at<uchar>(i, j);
-
-			if (pixel > highTh) {
+			if (src.at<uchar>(i, j) > highTh) {
 				out.at<uchar>(i, j) = 255;
 			}
-			else if (pixel > lowTh) {
+			else if (src.at<uchar>(i, j) > lowTh) {
 				out.at<uchar>(i, j) = 127;
 			}
 		}
@@ -41,39 +39,38 @@ Mat doubleThresholding(Mat src, int lowTh, int highTh) {
 }
 
 Mat otsu2(Mat src) {
-	vector<double> histogram = normalizeHistogram(src), prob(3, 0.0), cumulativeMean(3, 0.0);
-	double maxVariance = 0.0, globalMean = 0.0;
-	int lowTh = 0, highTh = 0;
 	Mat gauss;
+	vector<double> histogram = normalizeHistogram(src), prob(3, 0.0), cumulativeMean(3, 0.0);
+	double globalMean = 0.0, maxVariance = 0.0;
+	int lowTh = 0, highTh = 0;
 
 	for (int i = 0; i < histogram.size(); i++) {
 		globalMean += (i + 1) * histogram[i];
 	}
-
+	
 	for (int i = 0; i < histogram.size() - 2; i++) {
 		prob[0] += histogram[i];
 		cumulativeMean[0] += (i + 1) * histogram[i];
 
-		for (int t = 0; t < histogram.size() - 1; t++) {
-			prob[1] += histogram[t];
-			cumulativeMean[1] += (t + 1) * histogram[t];
+		for (int j = 0; j < histogram.size() - 1; j++) {
+			prob[1] += histogram[j];
+			cumulativeMean[1] += (j + 1) * histogram[j];
 
 			for (int k = 0; k < histogram.size(); k++) {
 				prob[2] += histogram[k];
 				cumulativeMean[2] += (k + 1) * histogram[k];
+				double variance = pow(cumulativeMean[0] / prob[0] - globalMean, 2) + pow(cumulativeMean[1] / prob[1] - globalMean, 2) + pow(cumulativeMean[2] / prob[2] - globalMean, 2);
 
-				double currentVariance = pow(cumulativeMean[0] / prob[0] - globalMean, 2) + pow(cumulativeMean[1] / prob[1] - globalMean, 2) + pow(cumulativeMean[2] / prob[2] - globalMean, 2);
-
-				if (currentVariance > maxVariance) {
-					maxVariance = currentVariance;
+				if (variance > maxVariance) {
+					maxVariance = variance;
 					highTh = i;
-					lowTh = t;
+					lowTh = j;
 				}
 			}
 		}
 	}
 
-	GaussianBlur(src, gauss, Size(3, 3), 0);
+	GaussianBlur(src, gauss, Size(5, 5), 0);
 
 	return doubleThresholding(gauss, lowTh, highTh);
 }
@@ -88,7 +85,7 @@ int main() {
 
 	imshow("original", img);
 	imshow("otsu-2 image", otsu2(img));
-	waitKey(0);
+	waitKey();
 
 	return 0;
 }
